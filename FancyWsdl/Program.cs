@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -70,6 +71,19 @@ namespace FancyWsdl
 
 						classContent = Regex.Replace(classContent,$@"(?<pre>public \S+)(?<post> {propertyName} )",m => m.Groups["pre"].Value+"?"+m.Groups["post"].Value);
 						classContent = classContent.Replace(match.Value,match.Value.Replace(getterSetter,$"=> this.{propertyName}.HasValue;"));
+					}
+
+					// method name in SoapDocumentMethodAttribute
+					foreach (Match match in Regex.Matches(classContent,@"(?<soapDocumentMethodAttribute>\[(System.Web.Services.Protocols.)?SoapDocumentMethod(Attribute)?\(""[^""]*"")[^\]]*\]\s*\[return: [^]]+\]\s+public \S+ (?<methodName>[^\(]+)\(.*\s+object\[\] results = this\.Invoke\(""(?<methodName2>[^""]+)"""))
+					{
+						string soapDocumentMethodAttribute = match.Groups["soapDocumentMethodAttribute"].Value;
+						string methodName = match.Groups["methodName"].Value;
+						string methodName2 = match.Groups["methodName2"].Value;
+
+						if (!soapDocumentMethodAttribute.Contains("ResponseElementName = "))
+							classContent = classContent.Replace(match.Value,match.Value.Replace(soapDocumentMethodAttribute,soapDocumentMethodAttribute+$", ResponseElementName = \"{methodName}Response\""));
+						if (!soapDocumentMethodAttribute.Contains("RequestElementName = "))
+							classContent = classContent.Replace(match.Value,match.Value.Replace(soapDocumentMethodAttribute,soapDocumentMethodAttribute+$", RequestElementName = \"{methodName}\""));
 					}
 
 					fileContent = fileContent.Replace(classMatch.Value,classContent);
