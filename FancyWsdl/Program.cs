@@ -27,7 +27,7 @@ namespace FancyWsdl
 					string classContent = classMatch.Value;
 
 					// property name in XmlElementAttribute
-					foreach (Match match in Regex.Matches(classContent,@"\[(?<xmlElementAttribute>System.Xml.Serialization.XmlElementAttribute\()(""(?<elementName>[^""]+)"", )?[^\)]*\)\]\s+public (?<propertyType>\S+) (?<propertyName>\S+) "))
+					foreach (Match match in Regex.Matches(classContent,@"\[(?<xmlElementAttribute>(System.Xml.Serialization.)?XmlElement(Attribute)?\()(""(?<elementName>[^""]+)"")?[^\)]*\)\]\s+public (?<propertyType>\S+) (?<propertyName>\S+) "))
 					{
 						string xmlElementAttribute = match.Groups["xmlElementAttribute"].Value;
 						string elementName = match.Groups["elementName"].Value;
@@ -66,7 +66,7 @@ namespace FancyWsdl
 					}
 
 					// compute *Specified properties
-					foreach (Match match in Regex.Matches(classContent,@"\[System.Xml.Serialization.XmlIgnoreAttribute\(\)\]\s+public bool (?<propertyName>\S+)Specified (?<getterSetter>\{ get; set; \}|\{\s+get \s+[^;]+;\s+\}\s+\s+set \{\s+[^;]+;\s+\}\s+\})"))
+					foreach (Match match in Regex.Matches(classContent,@"\[(System.Xml.Serialization.)?XmlIgnore(Attribute)?\(\)\]\s+public bool (?<propertyName>\S+)Specified (?<getterSetter>\{ get; set; \}|\{\s+get \s+[^;]+;\s+\}\s+\s+set \{\s+[^;]+;\s+\}\s+\})"))
 					{
 						string propertyName = match.Groups["propertyName"].Value;
 						string getterSetter = match.Groups["getterSetter"].Value;
@@ -79,7 +79,7 @@ namespace FancyWsdl
 				}
 
 
-				foreach (Match classMatch in Regex.Matches(fileContent,@"(\[(?<xmlRootAttribute>System.Xml.Serialization.XmlRootAttribute\()(""(?<rootName>[^""]+)"", )?[^\)]*\)\])?(?<space>\s+)(?<classDefinition>public partial class (?<className>\S+) )"))
+				foreach (Match classMatch in Regex.Matches(fileContent,@"(\[(?<xmlRootAttribute>(System.Xml.Serialization.)?XmlRoot(Attribute)?\()(""(?<rootName>[^""]+)"")?[^\)]*\)\])?(?<space>\s+)(?<classDefinition>public partial class (?<className>\S+) )"))
 				{
 					string xmlRootAttribute = classMatch.Groups["xmlRootAttribute"].Value;
 					string rootName = classMatch.Groups["rootName"].Value;
