@@ -33,15 +33,16 @@ namespace FancyWsdl
 					}
 
 					// autoimplemented getters & setters
-					foreach (Match match in Regex.Matches(fileContent,@"public (?<propertyType>\S+) (?<propertyName>\S+) (?<getterSetter>\{\s+get \{\s+return [^;]+;\s+}\s+set \{\s+[^;]+;\s+}\s+})"))
+					foreach (Match match in Regex.Matches(fileContent,@"public (?<propertyType>\S+) (?<propertyName>\S+) (?<getterSetter>\{\s+get \{\s+return this\.(?<fieldName>[^;]+);\s+}\s+set \{\s+[^;]+;\s+}\s+})"))
 					{
 						string propertyType = match.Groups["propertyType"].Value;
 						string propertyName = match.Groups["propertyName"].Value;
 						string getterSetter = match.Groups["getterSetter"].Value;
+						string fieldName = match.Groups["fieldName"].Value;
 
 						classContent = classContent.Replace(match.Value,match.Value.Replace(getterSetter,"{ get; set; }"));
-						classContent = Regex.Replace(classContent,$"private {Regex.Escape(propertyType)} {Regex.Escape(propertyName)}Field;\\s*","");
-						classContent = Regex.Replace(classContent,$"\\b{Regex.Escape(propertyName)}Field\\b",propertyName);
+						classContent = Regex.Replace(classContent,$"private {Regex.Escape(propertyType)} {Regex.Escape(fieldName)};\\s*","");
+						classContent = Regex.Replace(classContent,$"\\b{Regex.Escape(fieldName)}\\b",propertyName);
 					}
 
 					fileContent = fileContent.Replace(classMatch.Value,classContent);
