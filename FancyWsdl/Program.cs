@@ -33,7 +33,7 @@ namespace FancyWsdl
 					}
 
 					// autoimplemented getters & setters
-					foreach (Match match in Regex.Matches(classContent,@"public (?<propertyType>\S+) (?<propertyName>\S+) (?<getterSetter>\{\s+get \{\s+return this\.(?<fieldName>[^;]+);\s+}\s+set \{\s+[^;]+;\s+}\s+})"))
+					foreach (Match match in Regex.Matches(classContent,@"public (?<propertyType>\S+) (?<propertyName>\S+) (?<getterSetter>\{\s+get \{\s+return this\.(?<fieldName>[^;]+);\s+}\s+set \{\s+[^;]+;\s+\}\s+\})"))
 					{
 						string propertyType = match.Groups["propertyType"].Value;
 						string propertyName = match.Groups["propertyName"].Value;
@@ -57,6 +57,16 @@ namespace FancyWsdl
 						classContent = classContent.Replace(match.Value,pre+newPropertyName+post);
 						classContent = classContent.Replace($"this.{propertyName} ",$"this.{newPropertyName} ");
 						classContent = classContent.Replace($@".SoapHeaderAttribute(""{propertyName}"")",$@".SoapHeaderAttribute(""{newPropertyName}"")");
+					}
+
+					// compute *Specified properties
+					foreach (Match match in Regex.Matches(classContent,@"\[System.Xml.Serialization.XmlIgnoreAttribute\(\)\]\s+public bool (?<propertyName>\S+)Specified (?<getterSetter>\{ get; set; \}|\{\s+get \s+[^;]+;\s+\}\s+\s+set \{\s+[^;]+;\s+\}\s+\})"))
+					{
+						string propertyName = match.Groups["propertyName"].Value;
+						string getterSetter = match.Groups["getterSetter"].Value;
+
+						classContent = Regex.Replace(classContent,$@"(?<pre>public \S+)(?<post> {propertyName} )",m => m.Groups["pre"].Value+"?"+m.Groups["post"].Value);
+						classContent = classContent.Replace(match.Value,match.Value.Replace(getterSetter,$"=> this.{propertyName}.HasValue;"));
 					}
 						
 
