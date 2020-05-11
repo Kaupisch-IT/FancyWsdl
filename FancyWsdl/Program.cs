@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -107,7 +106,6 @@ namespace FancyWsdl
 					fileContent = fileContent.Replace(classMatch.Value,classContent);
 				}
 
-
 				foreach (Match classMatch in Regex.Matches(fileContent,@"(\[(?<xmlRootAttribute>(System.Xml.Serialization.)?XmlRoot(Attribute)?\()(""(?<rootName>[^""]+)"")?[^\)]*\)\])?(?<space>\s+)(?<classDefinition>public partial class (?<className>\S+) )"))
 				{
 					string xmlRootAttribute = classMatch.Groups["xmlRootAttribute"].Value;
@@ -126,14 +124,11 @@ namespace FancyWsdl
 					fileContent = Regex.Replace(fileContent,$@"(?<!"")\b{Regex.Escape(className)}\b(?!""|(\(\[))",firstLetterUppercase(className));
 				}
 
-
 				// use usings
 				string[] usings = new[] { "System","System.CodeDom.Compiler","System.ComponentModel","System.Diagnostics","System.Threading","System.Web.Services","System.Web.Services.Description","System.Web.Services.Protocols","System.Xml.Schema","System.Xml.Serialization" };
 				foreach (string usingNamespace in usings.OrderByDescending(u => u.Length))
 					fileContent = fileContent.Replace(usingNamespace+".","");
-				fileContent = Regex.Replace(fileContent,@"using \S+;\s*","");
-				foreach (string usingNamespace in usings.OrderBy(u => u).Reverse())
-					fileContent = $"using {usingNamespace};"+Environment.NewLine+fileContent;
+				fileContent = Regex.Replace(fileContent,@"(using \S+;\s?\n)+",String.Join(Environment.NewLine,usings.OrderBy(u => u).Select(u => $"using {u};"))+Environment.NewLine);
 
 				// use attribute shortcut
 				fileContent = fileContent.Replace("Attribute(","(");
