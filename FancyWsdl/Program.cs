@@ -74,16 +74,29 @@ namespace FancyWsdl
 					}
 
 					// method name in SoapDocumentMethodAttribute
-					foreach (Match match in Regex.Matches(classContent,@"(?<soapDocumentMethodAttribute>\[(System.Web.Services.Protocols.)?SoapDocumentMethod(Attribute)?\(""[^""]*"")[^\]]*\]\s*\[return: [^]]+\]\s+public \S+ (?<methodName>[^\(]+)\(.*\s+object\[\] results = this\.Invoke\(""(?<methodName2>[^""]+)"""))
+					foreach (Match match in Regex.Matches(classContent,@"(?<soapDocumentMethodAttribute>\[(System.Web.Services.Protocols.)?SoapDocumentMethod(Attribute)?\(""[^""]*""[^\]]*)\)\]\s*\[return: [^]]+\]\s+public \S+ (?<methodName>[^\(]+)\("))
 					{
 						string soapDocumentMethodAttribute = match.Groups["soapDocumentMethodAttribute"].Value;
 						string methodName = match.Groups["methodName"].Value;
-						string methodName2 = match.Groups["methodName2"].Value;
 
-						if (!soapDocumentMethodAttribute.Contains("ResponseElementName = "))
-							classContent = classContent.Replace(match.Value,match.Value.Replace(soapDocumentMethodAttribute,soapDocumentMethodAttribute+$", ResponseElementName = \"{methodName}Response\""));
+						string argumentsToAdd = null;
 						if (!soapDocumentMethodAttribute.Contains("RequestElementName = "))
-							classContent = classContent.Replace(match.Value,match.Value.Replace(soapDocumentMethodAttribute,soapDocumentMethodAttribute+$", RequestElementName = \"{methodName}\""));
+							argumentsToAdd += $", RequestElementName = \"{methodName}\"";
+						if (!soapDocumentMethodAttribute.Contains("ResponseElementName = "))
+							argumentsToAdd += $", ResponseElementName = \"{methodName}Response\"";
+						classContent = classContent.Replace(match.Value,match.Value.Replace(soapDocumentMethodAttribute,soapDocumentMethodAttribute+argumentsToAdd));
+					}
+
+					// method name with uppercase first letter
+					foreach (Match match in Regex.Matches(classContent,@"(?<pre>public \S+ )(?<methodName>[^\(]+)(?<inter>\(.*\s+object\[\] results = this\.Invoke\()(?<methodName2>""[^""]+"")(?<post>)"))
+					{
+						string pre = match.Groups["pre"].Value;
+						string methodName = match.Groups["methodName"].Value;
+						string inter = match.Groups["inter"].Value;
+						string methodName2 = match.Groups["methodName2"].Value;
+						string post = match.Groups["post"].Value;
+
+						classContent = classContent.Replace(match.Value,pre+firstLetterUppercase(methodName)+inter+"nameof("+firstLetterUppercase(methodName)+")"+post);
 					}
 
 					fileContent = fileContent.Replace(classMatch.Value,classContent);
