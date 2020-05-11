@@ -74,7 +74,7 @@ namespace FancyWsdl
 					}
 
 					// method name in SoapDocumentMethodAttribute
-					foreach (Match match in Regex.Matches(classContent,@"(?<soapDocumentMethodAttribute>\[(System.Web.Services.Protocols.)?SoapDocumentMethod(Attribute)?\(""[^""]*""[^\]]*)\)\]\s*\[return: [^]]+\]\s+public \S+ (?<methodName>[^\(]+)\("))
+					foreach (Match match in Regex.Matches(classContent,@"(?<soapDocumentMethodAttribute>\[(System.Web.Services.Protocols.)?SoapDocumentMethod(Attribute)?\(""[^""]*""[^\]]*)\)\]\s*\[return: [^]]+\]\s+public \S+ (?<methodName>[^\s\(]+)\("))
 					{
 						string soapDocumentMethodAttribute = match.Groups["soapDocumentMethodAttribute"].Value;
 						string methodName = match.Groups["methodName"].Value;
@@ -88,7 +88,7 @@ namespace FancyWsdl
 					}
 
 					// method name with uppercase first letter
-					foreach (Match match in Regex.Matches(classContent,@"(?<pre>public \S+ )(?<methodName>[^\(]+)(?<inter>\(.*\s+object\[\] results = this\.Invoke\()(?<methodName2>""[^""]+"")(?<post>)"))
+					foreach (Match match in Regex.Matches(classContent,@"(?<pre>public \S+ (Begin|End)?)(?<methodName>[^\s\(]+)(?<inter>(Async)?[^\n]*(\n[^\n]*){1,4}this\.(Begin|End)?Invoke(Async)?\()(""(?<methodName2>[^""]+)"")?(?<post>)"))
 					{
 						string pre = match.Groups["pre"].Value;
 						string methodName = match.Groups["methodName"].Value;
@@ -96,7 +96,12 @@ namespace FancyWsdl
 						string methodName2 = match.Groups["methodName2"].Value;
 						string post = match.Groups["post"].Value;
 
-						classContent = classContent.Replace(match.Value,pre+firstLetterUppercase(methodName)+inter+"nameof("+firstLetterUppercase(methodName)+")"+post);
+						classContent = classContent.Replace(match.Value,pre+firstLetterUppercase(methodName)+inter+((!String.IsNullOrEmpty(methodName2)) ? "nameof("+firstLetterUppercase(methodName2)+")" : "")+post);
+					}
+					foreach (Match match in Regex.Matches(classContent,@"public void (?<methodName>[^\s\(]+)"))
+					{
+						string methodName = match.Groups["methodName"].Value;
+						classContent = Regex.Replace(classContent,$@"(?<pre>( |\.)){methodName}(?<post>[\(\)])",m => m.Groups["pre"].Value+firstLetterUppercase(methodName)+m.Groups["post"].Value);
 					}
 
 					fileContent = fileContent.Replace(classMatch.Value,classContent);
