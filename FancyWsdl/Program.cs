@@ -21,7 +21,7 @@ namespace FancyWsdl
 					string classContent = classMatch.Value;
 
 					// name in XmlElementAttribute
-					foreach (Match match in Regex.Matches(classContent,@"\[(?<xmlElementAttribute>System.Xml.Serialization.XmlElementAttribute\()(""(?<elementName>[^""]+)"", )?Form=System.Xml.Schema.XmlSchemaForm.Unqualified\)\]\s+public (?<propertyType>\S+) (?<propertyName>\S+) "))
+					foreach (Match match in Regex.Matches(classContent,@"\[(?<xmlElementAttribute>System.Xml.Serialization.XmlElementAttribute\()(""(?<elementName>[^""]+)"", )?[^\)]*\)\]\s+public (?<propertyType>\S+) (?<propertyName>\S+) "))
 					{
 						string xmlElementAttribute = match.Groups["xmlElementAttribute"].Value;
 						string elementName = match.Groups["elementName"].Value;
@@ -56,6 +56,7 @@ namespace FancyWsdl
 
 						classContent = classContent.Replace(match.Value,pre+newPropertyName+post);
 						classContent = classContent.Replace($"this.{propertyName} ",$"this.{newPropertyName} ");
+						classContent = classContent.Replace($@".SoapHeaderAttribute(""{propertyName}"")",$@".SoapHeaderAttribute(""{newPropertyName}"")");
 					}
 						
 
