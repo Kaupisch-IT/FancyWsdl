@@ -12,33 +12,42 @@ namespace FancyWsdl
 			foreach (string path in args)
 			{
 				Encoding encoding = Encoding.UTF8;
-				string content = File.ReadAllText(path,encoding);
+				string fileContent = File.ReadAllText(path,encoding);
 
-				// name in XmlElementAttribute
-				foreach (Match match in Regex.Matches(content,@"\[(?<xmlElementAttribute>System.Xml.Serialization.XmlElementAttribute\()(""(?<elementName>[^""]+)"", )?Form=System.Xml.Schema.XmlSchemaForm.Unqualified\)\]\s+public (?<propertyType>\S+) (?<propertyName>\S+)"))
+				// enumerate all class definitions
+				foreach (Match classMatch in Regex.Matches(fileContent,@"^(?<space>\s*)public partial class (?<className>\S+).*?\n(\k<space>)}",RegexOptions.Singleline|RegexOptions.Multiline))
 				{
-					string xmlElementAttribute = match.Groups["xmlElementAttribute"].Value;
-					string elementName = match.Groups["elementName"].Value;
-					string propertyType = match.Groups["propertyType"].Value;
-					string propertyName = match.Groups["propertyName"].Value;
+					string className = classMatch.Groups["className"].Value;
+					string classContent = classMatch.Value;
 
-					if (String.IsNullOrEmpty(elementName))
-						content = content.Replace(match.Value,match.Value.Replace(xmlElementAttribute,xmlElementAttribute+"\""+propertyName+"\", "));
+					// name in XmlElementAttribute
+					foreach (Match match in Regex.Matches(fileContent,@"\[(?<xmlElementAttribute>System.Xml.Serialization.XmlElementAttribute\()(""(?<elementName>[^""]+)"", )?Form=System.Xml.Schema.XmlSchemaForm.Unqualified\)\]\s+public (?<propertyType>\S+) (?<propertyName>\S+) "))
+					{
+						string xmlElementAttribute = match.Groups["xmlElementAttribute"].Value;
+						string elementName = match.Groups["elementName"].Value;
+						string propertyType = match.Groups["propertyType"].Value;
+						string propertyName = match.Groups["propertyName"].Value;
+
+						if (String.IsNullOrEmpty(elementName))
+							classContent = classContent.Replace(match.Value,match.Value.Replace(xmlElementAttribute,xmlElementAttribute+"\""+propertyName+"\", "));
+					}
+
+					// autoimplemented getters & setters
+					foreach (Match match in Regex.Matches(fileContent,@"public (?<propertyType>\S+) (?<propertyName>\S+) (?<getterSetter>\{\s+get \{\s+return [^;]+;\s+}\s+set \{\s+[^;]+;\s+}\s+})"))
+					{
+						string propertyType = match.Groups["propertyType"].Value;
+						string propertyName = match.Groups["propertyName"].Value;
+						string getterSetter = match.Groups["getterSetter"].Value;
+
+						classContent = classContent.Replace(match.Value,match.Value.Replace(getterSetter,"{ get; set; }"));
+						classContent = Regex.Replace(classContent,$"private {Regex.Escape(propertyType)} {Regex.Escape(propertyName)}Field;\\s*","");
+						classContent = Regex.Replace(classContent,$"\\b{Regex.Escape(propertyName)}Field\\b",propertyName);
+					}
+
+					fileContent = fileContent.Replace(classMatch.Value,classContent);
 				}
 
-				// autoimplemented getters & setters
-				foreach (Match match in Regex.Matches(content,@"public (?<propertyType>\S+) (?<propertyName>\S+) (?<getterSetter>\{\s+get \{\s+return [^;]+;\s+}\s+set \{\s+[^;]+;\s+}\s+})"))
-				{
-					string propertyType = match.Groups["propertyType"].Value;
-					string propertyName = match.Groups["propertyName"].Value;
-					string getterSetter = match.Groups["getterSetter"].Value;
-
-					content = content.Replace(match.Value,match.Value.Replace(getterSetter,"{ get; set; }"));
-					content = Regex.Replace(content,$"private {Regex.Escape(propertyType)} {Regex.Escape(propertyName)}Field;\\s*","");
-					// content = Regex.Replace(content,$"\\b{Regex.Escape(propertyName)}Field\\b",propertyName);
-				}
-
-				File.WriteAllText(path,content,encoding);
+				File.WriteAllText(path,fileContent,encoding);
 			}
 		}
 	}
