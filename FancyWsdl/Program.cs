@@ -41,8 +41,8 @@ namespace FancyWsdl
 						string fieldName = match.Groups["fieldName"].Value;
 
 						classContent = classContent.Replace(match.Value,match.Value.Replace(getterSetter,"{ get; set; }"));
-						classContent = Regex.Replace(classContent,$"private {Regex.Escape(propertyType)} {Regex.Escape(fieldName)};\\s*","");
-						classContent = Regex.Replace(classContent,$"\\b{Regex.Escape(fieldName)}\\b",propertyName);
+						classContent = Regex.Replace(classContent,$@"private {Regex.Escape(propertyType)} {Regex.Escape(fieldName)};\s*","");
+						classContent = Regex.Replace(classContent,$@"\b{Regex.Escape(fieldName)}\b",propertyName);
 					}
 
 					// property names with uppercase first letter
