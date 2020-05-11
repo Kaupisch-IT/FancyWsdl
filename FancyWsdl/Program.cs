@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Numerics;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -94,7 +91,7 @@ namespace FancyWsdl
 						fileContent = fileContent.Replace(classMatch.Value,classMatch.Value.Replace(xmlRootAttribute,xmlRootAttribute+"\""+className+"\", "));
 
 					// class name with uppercase first letter
-					fileContent = Regex.Replace(fileContent,$@"(?<!"")\b{Regex.Escape(className)}\b(?!"")",firstLetterUppercase(className));
+					fileContent = Regex.Replace(fileContent,$@"(?<!"")\b{Regex.Escape(className)}\b(?!""|(\(\[))",firstLetterUppercase(className));
 				}
 
 
