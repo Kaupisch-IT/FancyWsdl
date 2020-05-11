@@ -21,7 +21,7 @@ namespace FancyWsdl
 					string classContent = classMatch.Value;
 
 					// name in XmlElementAttribute
-					foreach (Match match in Regex.Matches(fileContent,@"\[(?<xmlElementAttribute>System.Xml.Serialization.XmlElementAttribute\()(""(?<elementName>[^""]+)"", )?Form=System.Xml.Schema.XmlSchemaForm.Unqualified\)\]\s+public (?<propertyType>\S+) (?<propertyName>\S+) "))
+					foreach (Match match in Regex.Matches(classContent,@"\[(?<xmlElementAttribute>System.Xml.Serialization.XmlElementAttribute\()(""(?<elementName>[^""]+)"", )?Form=System.Xml.Schema.XmlSchemaForm.Unqualified\)\]\s+public (?<propertyType>\S+) (?<propertyName>\S+) "))
 					{
 						string xmlElementAttribute = match.Groups["xmlElementAttribute"].Value;
 						string elementName = match.Groups["elementName"].Value;
@@ -33,7 +33,7 @@ namespace FancyWsdl
 					}
 
 					// autoimplemented getters & setters
-					foreach (Match match in Regex.Matches(fileContent,@"public (?<propertyType>\S+) (?<propertyName>\S+) (?<getterSetter>\{\s+get \{\s+return this\.(?<fieldName>[^;]+);\s+}\s+set \{\s+[^;]+;\s+}\s+})"))
+					foreach (Match match in Regex.Matches(classContent,@"public (?<propertyType>\S+) (?<propertyName>\S+) (?<getterSetter>\{\s+get \{\s+return this\.(?<fieldName>[^;]+);\s+}\s+set \{\s+[^;]+;\s+}\s+})"))
 					{
 						string propertyType = match.Groups["propertyType"].Value;
 						string propertyName = match.Groups["propertyName"].Value;
@@ -44,6 +44,20 @@ namespace FancyWsdl
 						classContent = Regex.Replace(classContent,$"private {Regex.Escape(propertyType)} {Regex.Escape(fieldName)};\\s*","");
 						classContent = Regex.Replace(classContent,$"\\b{Regex.Escape(fieldName)}\\b",propertyName);
 					}
+
+					// property names with uppercase first letter
+					foreach (Match match in Regex.Matches(classContent,@"(?<pre>public \S+ )(?<propertyName>\S+)(?<post> \{)"))
+					{
+						string pre = match.Groups["pre"].Value;
+						string propertyName = match.Groups["propertyName"].Value;
+						string post = match.Groups["post"].Value;
+
+						string newPropertyName = Char.ToUpper(propertyName[0])+propertyName.Substring(1);
+
+						classContent = classContent.Replace(match.Value,pre+newPropertyName+post);
+						classContent = classContent.Replace($"this.{propertyName} ",$"this.{newPropertyName} ");
+					}
+						
 
 					fileContent = fileContent.Replace(classMatch.Value,classContent);
 				}
