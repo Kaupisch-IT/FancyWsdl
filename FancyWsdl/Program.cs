@@ -127,6 +127,8 @@ namespace FancyWsdl
 						if (String.IsNullOrEmpty(xmlEnumAttribute))
 							enumContent = enumContent.Replace(valueMatch.Value,space+$"[System.Xml.Serialization.XmlEnumAttribute(\"{enumValue}\")]"+valueMatch.Value);
 
+						// enum value with uppercase first letter
+						enumContent = Regex.Replace(enumContent,@$"\b{enumValue},",$"{firstLetterUppercase(enumValue)},");
 					}
 					fileContent = fileContent.Replace(enumMatch.Value,enumContent);
 				}
