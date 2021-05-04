@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Xml;
 
 namespace FancyWsdl
 {
@@ -124,6 +125,54 @@ namespace FancyWsdl
 					fileContent = Regex.Replace(fileContent,$@"(?<!"")\b{Regex.Escape(className)}\b(?!""|(\(\[))",firstLetterUppercase(className));
 				}
 
+				if (false)
+				{
+					XmlDocument xmlDocument = new XmlDocument();
+					using (XmlTextReader xmlTextReader = new XmlTextReader("https://..."))
+					{
+						xmlTextReader.Namespaces = false;
+						xmlDocument.Load(xmlTextReader);
+					}
+
+					foreach (Match classMatch in Regex.Matches(fileContent,@"(\[(?<xmlRootAttribute>(System.Xml.Serialization.)?XmlRoot(Attribute)?\()(""(?<rootName>[^""]+)"")?[^\)]*\)\])?(?<space>\s+)public partial class (?<className>\S+).*?(\k<space>)}",RegexOptions.Singleline|RegexOptions.Multiline))
+					{
+						string className = classMatch.Groups["className"].Value;
+						string classContent = classMatch.Value;
+						string rootName = classMatch.Groups["rootName"].Value;
+
+						string toSummary(string text,string indentSpace)
+						{
+							if (text.Contains("\n"))
+								return $"/// <summary>{indentSpace}/// {Regex.Replace(text,"\r?\n",indentSpace+"/// ")}{indentSpace}/// </summary>";
+							else
+								return $"/// <summary> {text} </summary>";
+						}
+
+						// element documentation
+						foreach (Match elementMatch in Regex.Matches(classContent,@"\[(?<xmlElementAttribute>(System.Xml.Serialization.)?XmlElement(Attribute)?\()(""(?<elementName>[^""]+)"")?[^\)]*\)\](?<space>\s+)public (?<propertyType>\S+) (?<propertyName>\S+) "))
+						{
+							string propertyName = elementMatch.Groups["propertyName"].Value;
+							string elementName = elementMatch.Groups["elementName"].Value;
+							string elementDocumentation = xmlDocument.SelectSingleNode($"//schema/*[local-name()='xs:complexType' and @name='{rootName}']/*/*[local-name()='xs:element' and @name='{elementName}']")?.InnerText;
+
+							if (elementDocumentation!=null)
+							{
+								elementDocumentation = toSummary(elementDocumentation,elementMatch.Groups["space"].Value);
+								classContent = Regex.Replace(classContent,@$"(?<remarks>/// <remarks/>)(?<remainder>(\s*\[[^\n]+\])*\s*public (?<propertyType>\S+) {propertyName})",m => elementDocumentation+m.Groups["remainder"].Value,RegexOptions.Singleline|RegexOptions.Multiline);
+							}
+						}
+						fileContent = fileContent.Replace(classMatch.Value,classContent);
+
+						// complex type documentation
+						string classDocumentation = xmlDocument.SelectSingleNode($"//schema/*[local-name()='xs:complexType' and @name='{rootName}']/*[local-name()='xs:annotation']/*[local-name()='xs:documentation']")?.InnerText;
+						if (classDocumentation!=null)
+						{
+							classDocumentation = toSummary(classDocumentation,classMatch.Groups["space"].Value);
+							fileContent = Regex.Replace(fileContent,@$"(?<remarks>/// <remarks/>)(?<remainder>(\s*\[[^\n]+\])*\s*public partial class {className})",m => classDocumentation+m.Groups["remainder"].Value,RegexOptions.Singleline|RegexOptions.Multiline);
+						}
+					}
+				}
+
 				// use usings
 				string[] usings = new[] { "System","System.CodeDom.Compiler","System.ComponentModel","System.Diagnostics","System.Threading","System.Web.Services","System.Web.Services.Description","System.Web.Services.Protocols","System.Xml.Schema","System.Xml.Serialization" };
 				foreach (string usingNamespace in usings.OrderByDescending(u => u.Length))
@@ -134,7 +183,7 @@ namespace FancyWsdl
 				fileContent = fileContent.Replace("Attribute(","(");
 
 
-				File.WriteAllText(path,fileContent,encoding);
+				File.WriteAllText(path+".out.cs",fileContent,encoding);
 			}
 		}
 	}
