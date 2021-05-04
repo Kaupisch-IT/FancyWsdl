@@ -107,6 +107,28 @@ namespace FancyWsdl
 					fileContent = fileContent.Replace(classMatch.Value,classContent);
 				}
 
+				// enumerate all enum definitions
+				foreach (Match enumMatch in Regex.Matches(fileContent,@"^(?<space>\s*)public enum (?<enumName>\S+).*?\n(\k<space>)}",RegexOptions.Singleline|RegexOptions.Multiline))
+				{
+					string enumName = enumMatch.Groups["enumName"].Value;
+					string enumContent = enumMatch.Value;
+
+					// enum values in XmlEnumAttribute
+					foreach (Match valueMatch in Regex.Matches(enumContent,@"(\[(?<xmlEnumAttribute>(System.Xml.Serialization.)?XmlEnum(Attribute)?\()(""(?<enumValueName>[^""]+)"")?[^\)]*\)\])?(?<space>\s+)(?<enumValue>\S+),"))
+					{
+						string xmlEnumAttribute = valueMatch.Groups["xmlEnumAttribute"].Value;
+						string enumValueName = valueMatch.Groups["enumValueName"].Value;
+						string space = valueMatch.Groups["space"].Value;
+						string enumValue = valueMatch.Groups["enumValue"].Value;
+
+						// class name in XmlRootAttribute
+						if (String.IsNullOrEmpty(xmlEnumAttribute))
+							enumContent = enumContent.Replace(valueMatch.Value,space+$"[System.Xml.Serialization.XmlEnumAttribute(\"{enumValue}\")]"+valueMatch.Value);
+
+					}
+					fileContent = fileContent.Replace(enumMatch.Value,enumContent);
+				}
+
 				foreach (Match classMatch in Regex.Matches(fileContent,@"(\[(?<xmlRootAttribute>(System.Xml.Serialization.)?XmlRoot(Attribute)?\()(""(?<rootName>[^""]+)"")?[^\)]*\)\])?(?<space>\s+)(?<classDefinition>public (partial class|enum) (?<className>\S+) )"))
 				{
 					string xmlRootAttribute = classMatch.Groups["xmlRootAttribute"].Value;
@@ -125,7 +147,7 @@ namespace FancyWsdl
 					fileContent = Regex.Replace(fileContent,$@"(?<!"")\b{Regex.Escape(className)}\b(?!""|(\(\[))",firstLetterUppercase(className));
 				}
 
-				if (true)
+				if (false)
 				{
 					XmlDocument xmlDocument = new XmlDocument();
 					using (XmlTextReader xmlTextReader = new XmlTextReader("https://..."))
