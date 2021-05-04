@@ -222,10 +222,10 @@ namespace FancyWsdl
 				fileContent = Regex.Replace(fileContent,@"(using \S+;\s?\n)+",String.Join(Environment.NewLine,usings.OrderBy(u => u).Select(u => $"using {u};"))+Environment.NewLine);
 
 				// use attribute shortcut
+				fileContent = fileContent.Replace("Attribute()]","]");
 				fileContent = fileContent.Replace("Attribute(","(");
 
-
-				File.WriteAllText(path+".out.cs",fileContent,encoding);
+				File.WriteAllText(path,fileContent,encoding);
 			}
 		}
 	}
