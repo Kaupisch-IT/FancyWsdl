@@ -13,8 +13,10 @@ namespace FancyWsdl
 		{
 			static string firstLetterUppercase(string s) => Char.ToUpper(s[0])+s.Substring(1);
 
-			foreach (string path in args)
+			if (args.Any())
 			{
+				string path = args[0];
+
 				Encoding encoding = Encoding.UTF8;
 				string fileContent = File.ReadAllText(path,encoding);
 
@@ -147,10 +149,13 @@ namespace FancyWsdl
 					fileContent = Regex.Replace(fileContent,$@"(?<!"")\b{Regex.Escape(className)}\b(?!""|(\(\[))",firstLetterUppercase(className));
 				}
 
-				if (false)
+				// add annotations/documentation from XML schema
+				if (args.Length>1)
 				{
+					string schemaUrl = args[1];
+
 					XmlDocument xmlDocument = new XmlDocument();
-					using (XmlTextReader xmlTextReader = new XmlTextReader("https://..."))
+					using (XmlTextReader xmlTextReader = new XmlTextReader(schemaUrl))
 					{
 						xmlTextReader.Namespaces = false;
 						xmlDocument.Load(xmlTextReader);
