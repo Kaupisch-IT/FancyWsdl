@@ -239,10 +239,14 @@ namespace FancyWsdl
 				}
 
 				// use usings
-				string[] usings = new[] { "System","System.CodeDom.Compiler","System.ComponentModel","System.Diagnostics","System.Threading","System.Web.Services","System.Web.Services.Description","System.Web.Services.Protocols","System.Xml.Schema","System.Xml.Serialization" };
+				string[] usings = Regex.Matches(fileContent,@"(?<namespace>System(\.\w+)*)\.\w+(?=\([^\]]*\)]| \w+ = |<| )|((?<namespace>System(\.\w+)*)(\.\w+){2},)|(using (?<namespace>\S+);)").Select(m => m.Groups["namespace"].Value.Trim('.')).Distinct().ToArray(); ;
 				foreach (string usingNamespace in usings.OrderByDescending(u => u.Length))
 					fileContent = fileContent.Replace(usingNamespace+".","");
-				fileContent = Regex.Replace(fileContent,@"(using \S+;\s?\n)+",String.Join(Environment.NewLine,usings.OrderBy(u => u).Select(u => $"using {u};"))+Environment.NewLine);
+				string usingDeclaration = String.Join(Environment.NewLine,usings.OrderBy(u => u).Select(u => $"using {u};"))+Environment.NewLine;
+				if (Regex.IsMatch(fileContent,@"using \S+;"))
+					fileContent = Regex.Replace(fileContent,@"(using \S+;\s?\n)+",usingDeclaration);
+				else
+					fileContent = usingDeclaration + Environment.NewLine + fileContent;
 
 				// use attribute shortcut
 				fileContent = fileContent.Replace("Attribute()]","]");
