@@ -39,7 +39,7 @@ namespace FancyWsdl
 							classContent = classContent.Replace(match.Value,match.Value.Replace(xmlElementAttribute,xmlElementAttribute+"\""+propertyName+"\", "));
 					}
 
-					// autoimplemented getters & setters
+					// auto-implemented getters & setters
 					foreach (Match match in Regex.Matches(classContent,@"public (?<propertyType>\S+) (?<propertyName>\S+) (?<getterSetter>\{\s+get \{\s+return this\.(?<fieldName>[^;]+);\s+}\s+set \{\s+[^;]+;\s+\}\s+\})"))
 					{
 						string propertyType = match.Groups["propertyType"].Value;
@@ -116,7 +116,7 @@ namespace FancyWsdl
 					string enumName = enumMatch.Groups["enumName"].Value;
 					string enumContent = enumMatch.Value;
 
-					// enum values in XmlEnumAttribute
+					// enumerate all enum values
 					foreach (Match valueMatch in Regex.Matches(enumContent,@"(\[(?<xmlEnumAttribute>(System.Xml.Serialization.)?XmlEnum(Attribute)?\()(""(?<enumValueName>[^""]+)"")?[^\)]*\)\])?(?<space>\s+)(?<enumValue>\S+),"))
 					{
 						string xmlEnumAttribute = valueMatch.Groups["xmlEnumAttribute"].Value;
@@ -124,7 +124,7 @@ namespace FancyWsdl
 						string space = valueMatch.Groups["space"].Value;
 						string enumValue = valueMatch.Groups["enumValue"].Value;
 
-						// class name in XmlRootAttribute
+						// enum values in XmlEnumAttribute
 						if (String.IsNullOrEmpty(xmlEnumAttribute))
 							enumContent = enumContent.Replace(valueMatch.Value,space+$"[System.Xml.Serialization.XmlEnumAttribute(\"{enumValue}\")]"+valueMatch.Value);
 
@@ -134,6 +134,7 @@ namespace FancyWsdl
 					fileContent = fileContent.Replace(enumMatch.Value,enumContent);
 				}
 
+				// enumerate all class definitions
 				foreach (Match classMatch in Regex.Matches(fileContent,@"(\[(?<xmlRootAttribute>(System.Xml.Serialization.)?XmlRoot(Attribute)?\()(""(?<rootName>[^""]+)"")?[^\)]*\)\])?(?<space>\s+)(?<classDefinition>public (partial class|enum) (?<className>\S+) )"))
 				{
 					string xmlRootAttribute = classMatch.Groups["xmlRootAttribute"].Value;
@@ -162,6 +163,7 @@ namespace FancyWsdl
 						xmlDocument.Load(xmlTextReader);
 					}
 
+					// enumerate all class & enum definitions
 					foreach (Match classMatch in Regex.Matches(fileContent,@"(\[(?<xmlRootAttribute>(System.Xml.Serialization.)?XmlRoot(Attribute)?\()(""(?<rootName>[^""]+)"")?[^\)]*\)\])?(?<space>\s+)public (partial class|enum) (?<className>\S+).*?(\k<space>)}",RegexOptions.Singleline|RegexOptions.Multiline))
 					{
 						string className = classMatch.Groups["className"].Value;
