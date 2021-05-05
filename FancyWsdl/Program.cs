@@ -152,12 +152,12 @@ namespace FancyWsdl
 				}
 
 				// add annotations/documentation from XML schema
-				foreach (string schemaUrl in args.Skip(1)) 
+				foreach (string schemaUrl in args.Skip(1))
 				{
 					XmlDocument xmlDocument = new XmlDocument();
 					using (XmlTextReader xmlTextReader = new XmlTextReader(schemaUrl))
 					{
-					 	xmlTextReader.Namespaces = false;
+						xmlTextReader.Namespaces = false;
 						xmlDocument.Load(xmlTextReader);
 					}
 
@@ -167,8 +167,9 @@ namespace FancyWsdl
 						string classContent = classMatch.Value;
 						string rootName = classMatch.Groups["rootName"].Value;
 
-						string toSummary(string text,string indentSpace)
+						static string toSummary(string text,string indentSpace)
 						{
+							text = text.Trim();
 							if (text.Contains("\n"))
 								return $"/// <summary>{indentSpace}/// {Regex.Replace(text,"\r?\n",indentSpace+"/// ")}{indentSpace}/// </summary>";
 							else
