@@ -110,7 +110,7 @@ public partial class parcelInformationType {
 
 ## Enhancements
 
-**Property name in `XmlElementAttribute`** (so it's possible to rename the property) & **uppercase first letter of property name**
+**Property name in `XmlElementAttribute`** (so it's possible to rename the property) & **pascal-case property name**
 
 _Before:_
 
@@ -179,7 +179,7 @@ public bool DateFromSpecified => this.DateFrom.HasValue;
 ```
 
 
-**Method name in SoapDocumentMethodAttribute** (so it's possible to rename the method) & **uppercase first letter of method name**
+**Method name in SoapDocumentMethodAttribute** (so it's possible to rename the method) & **pascal-case method name**
 
 _Before:_
 
@@ -202,7 +202,7 @@ public storeOrdersResponse StoreOrders(...) {
 ```
 
 
-**Enum values in XmlEnumAttribute** (so it's possible to rename the enum value) & **uppercase first letter of enum value**
+**Enum values in XmlEnumAttribute** (so it's possible to rename the enum value) & **pascal-case enum value**
 
 _Before:_
 
@@ -229,15 +229,15 @@ public enum productAndServiceDataOrderType {
     Consignment,
 
     [XmlEnum("collection request order")]
-    Collectionrequestorder,
+    CollectionRequestOrder,
 
     [XmlEnum("pickup information")]
-    Pickupinformation,
+    PickupInformation,
 }
 ```
 
 
-**Type names in XmlRootAttribute** (so it's possible to rename the type) & **uppercase first letter of type**
+**Type names in XmlRootAttribute** (so it's possible to rename the type) & **pascal-case type**
 
 _Before:_
 

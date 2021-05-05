@@ -12,7 +12,7 @@ namespace FancyWsdl
 	{
 		static void Main(string[] args)
 		{
-			static string firstLetterUppercase(string s) => Char.ToUpper(s[0])+s.Substring(1);
+			static string pascalCase(string s) => Regex.Replace(s,@"(^|\s+)(?<letter>\S)",m => m.Groups["letter"].Value.ToUpper());
 
 			if (args.Any())
 			{
@@ -59,7 +59,7 @@ namespace FancyWsdl
 						string propertyName = match.Groups["propertyName"].Value;
 						string post = match.Groups["post"].Value;
 
-						string newPropertyName = firstLetterUppercase(propertyName);
+						string newPropertyName = pascalCase(propertyName);
 
 						classContent = classContent.Replace(match.Value,pre+newPropertyName+post);
 						classContent = classContent.Replace($"this.{propertyName} ",$"this.{newPropertyName} ");
@@ -99,12 +99,12 @@ namespace FancyWsdl
 						string methodName2 = match.Groups["methodName2"].Value;
 						string post = match.Groups["post"].Value;
 
-						classContent = classContent.Replace(match.Value,pre+firstLetterUppercase(methodName)+inter+((!String.IsNullOrEmpty(methodName2)) ? "nameof("+firstLetterUppercase(methodName2)+")" : "")+post);
+						classContent = classContent.Replace(match.Value,pre+pascalCase(methodName)+inter+((!String.IsNullOrEmpty(methodName2)) ? "nameof("+pascalCase(methodName2)+")" : "")+post);
 					}
 					foreach (Match match in Regex.Matches(classContent,@"public void (?<methodName>[^\s\(]+)"))
 					{
 						string methodName = match.Groups["methodName"].Value;
-						classContent = Regex.Replace(classContent,$@"(?<pre>( |\.)){methodName}(?<post>[\(\)])",m => m.Groups["pre"].Value+firstLetterUppercase(methodName)+m.Groups["post"].Value);
+						classContent = Regex.Replace(classContent,$@"(?<pre>( |\.)){methodName}(?<post>[\(\)])",m => m.Groups["pre"].Value+pascalCase(methodName)+m.Groups["post"].Value);
 					}
 
 					fileContent = fileContent.Replace(classMatch.Value,classContent);
@@ -129,7 +129,7 @@ namespace FancyWsdl
 							enumContent = enumContent.Replace(valueMatch.Value,space+$"[System.Xml.Serialization.XmlEnumAttribute(\"{enumValue}\")]"+valueMatch.Value);
 
 						// enum value with uppercase first letter
-						enumContent = Regex.Replace(enumContent,@$"\b{enumValue},",$"{firstLetterUppercase(enumValue)},");
+						enumContent = Regex.Replace(enumContent,@$"\b{enumValue},",$"{pascalCase((Regex.IsMatch(enumValueName,@"^[a-zA-Z_][\w\s]*$")) ? enumValueName : enumValue)},");
 					}
 					fileContent = fileContent.Replace(enumMatch.Value,enumContent);
 				}
@@ -150,7 +150,7 @@ namespace FancyWsdl
 						fileContent = fileContent.Replace(classMatch.Value,classMatch.Value.Replace(xmlRootAttribute,xmlRootAttribute+"\""+className+"\", "));
 
 					// class name with uppercase first letter
-					fileContent = Regex.Replace(fileContent,$@"(?<!"")\b{Regex.Escape(className)}\b(?!""|(\(\[))",firstLetterUppercase(className));
+					fileContent = Regex.Replace(fileContent,$@"(?<!"")\b{Regex.Escape(className)}\b(?!""|(\(\[))",pascalCase(className));
 				}
 
 				// add annotations/documentation from XML schema
