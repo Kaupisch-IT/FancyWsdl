@@ -181,12 +181,12 @@ namespace FancyWsdl
 						{
 							string propertyName = elementMatch.Groups["propertyName"].Value;
 							string elementName = elementMatch.Groups["elementName"].Value;
-							string elementDocumentation = xmlDocument.SelectSingleNode($"/*/*[@name='{rootName}']//*[@name='{elementName}']/*[contains(local-name(),'annotation')]/*[contains(local-name(),'documentation')]")?.InnerText;
+							string elementDocumentation = xmlDocument.SelectSingleNode($"/*/*[@name='{rootName}']//*[@name='{elementName}']//*[contains(local-name(),'documentation')]")?.InnerText;
 
 							if (elementDocumentation!=null)
 							{
 								elementDocumentation = toSummary(elementDocumentation,elementMatch.Groups["space"].Value);
-								classContent = Regex.Replace(classContent,@$"(?<remarks>/// <remarks/>)(?<remainder>(\s*\[[^\n]+\])*\s*public (?<propertyType>\S+) {propertyName})",m => elementDocumentation+m.Groups["remainder"].Value,RegexOptions.Singleline|RegexOptions.Multiline);
+								classContent = Regex.Replace(classContent,@$"(?<remarks>/// <remarks/>)(?<remainder>(\s*\[[^\n]+\])*\s*public (?<propertyType>\S+) {propertyName}\b)",m => elementDocumentation+m.Groups["remainder"].Value,RegexOptions.Singleline|RegexOptions.Multiline);
 							}
 						}
 
@@ -195,23 +195,23 @@ namespace FancyWsdl
 						{
 							string enumValue = enumMatch.Groups["enumValueName"].Value;
 							string enumValueName = enumMatch.Groups["enumValue"].Value;
-							string enumDocumentation = xmlDocument.SelectSingleNode($"/*/*[@name='{rootName}']//*[@value='{enumValueName}']/*[contains(local-name(),'annotation')]/*[contains(local-name(),'documentation')]")?.InnerText;
+							string enumDocumentation = xmlDocument.SelectSingleNode($"/*/*[@name='{rootName}']//*[@value='{enumValueName}']//*[contains(local-name(),'documentation')]")?.InnerText;
 
 							if (enumDocumentation!=null)
 							{
 								enumDocumentation = toSummary(enumDocumentation,enumMatch.Groups["space"].Value);
-								classContent = Regex.Replace(classContent,@$"(?<remarks>/// <remarks/>)(?<remainder>(\s*\[[^\n]+\])*\s*{enumValue})",m => enumDocumentation+m.Groups["remainder"].Value,RegexOptions.Singleline|RegexOptions.Multiline);
+								classContent = Regex.Replace(classContent,@$"(?<remarks>/// <remarks/>)(?<remainder>(\s*\[[^\n]+\])*\s*{enumValue}\b)",m => enumDocumentation+m.Groups["remainder"].Value,RegexOptions.Singleline|RegexOptions.Multiline);
 							}
 						}
 
 						fileContent = fileContent.Replace(classMatch.Value,classContent);
 
 						// complex type documentation
-						string classDocumentation = xmlDocument.SelectSingleNode($"/*/*[@name='{rootName}']/*[contains(local-name(),'annotation')]/*[contains(name(),'documentation')]")?.InnerText;
+						string classDocumentation = xmlDocument.SelectSingleNode($"/*/*[@name='{rootName}']//*[contains(name(),'documentation')]")?.InnerText;
 						if (classDocumentation!=null)
 						{
 							classDocumentation = toSummary(classDocumentation,classMatch.Groups["space"].Value);
-							fileContent = Regex.Replace(fileContent,@$"(?<remarks>/// <remarks/>)(?<remainder>(\s*\[[^\n]+\])*\s*public (partial class|enum) {className})",m => classDocumentation+m.Groups["remainder"].Value,RegexOptions.Singleline|RegexOptions.Multiline);
+							fileContent = Regex.Replace(fileContent,@$"(?<remarks>/// <remarks/>)(?<remainder>(\s*\[[^\n]+\])*\s*public (partial class|enum) {className}\b)",m => classDocumentation+m.Groups["remainder"].Value,RegexOptions.Singleline|RegexOptions.Multiline);
 						}
 					}
 				}
