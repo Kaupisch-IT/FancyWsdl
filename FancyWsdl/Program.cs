@@ -47,13 +47,13 @@ namespace FancyWsdl
 						string getterSetter = match.Groups["getterSetter"].Value;
 						string fieldName = match.Groups["fieldName"].Value;
 
-						classContent = classContent.Replace(match.Value,match.Value.Replace(getterSetter,"{ get; set; }"));
+						classContent = classContent.Replace(match.Value,match.Value.Replace(getterSetter," { get; set; }"));
 						classContent = Regex.Replace(classContent,$@"private {Regex.Escape(propertyType)} {Regex.Escape(fieldName)};\s*","");
 						classContent = Regex.Replace(classContent,$@"\b{Regex.Escape(fieldName)}\b",propertyName);
 					}
 
 					// property names with uppercase first letter
-					foreach (Match match in Regex.Matches(classContent,@"(?<pre>public \S+ )(?<propertyName>\S+)(?<post>\S+\{)"))
+					foreach (Match match in Regex.Matches(classContent,@"(?<pre>public \S+ )(?<propertyName>\S+)(?<post>\s+\{)"))
 					{
 						string pre = match.Groups["pre"].Value;
 						string propertyName = match.Groups["propertyName"].Value;
@@ -145,9 +145,9 @@ namespace FancyWsdl
 
 					// type name in XmlRootAttribute
 					if (String.IsNullOrEmpty(xmlRootAttribute))
-						fileContent = Regex.Replace(fileContent,$@"\b{Regex.Escape(classMatch.Value)}\b",classMatch.Value.Replace(classDefinition,$"[System.Xml.Serialization.XmlRootAttribute(\"{className}\")]"+space+classDefinition));
+						fileContent = Regex.Replace(fileContent,$@"{Regex.Escape(classMatch.Value)}\b",classMatch.Value.Replace(classDefinition,$"[System.Xml.Serialization.XmlRootAttribute(\"{className}\")]"+space+classDefinition));
 					else if (String.IsNullOrEmpty(rootName))
-						fileContent = Regex.Replace(fileContent,$@"\b{Regex.Escape(classMatch.Value)}\b",classMatch.Value.Replace(xmlRootAttribute,xmlRootAttribute+"\""+className+"\", "));
+						fileContent = Regex.Replace(fileContent,$@"{Regex.Escape(classMatch.Value)}\b",classMatch.Value.Replace(xmlRootAttribute,xmlRootAttribute+"\""+className+"\", "));
 
 					// type name with uppercase first letter
 					fileContent = Regex.Replace(fileContent,$@"(?<!"")\b{Regex.Escape(className)}\b(?!""|(\(\[))",pascalCase(className));
@@ -180,7 +180,7 @@ namespace FancyWsdl
 						}
 
 						// element documentation
-						foreach (Match elementMatch in Regex.Matches(classContent,@"\[(?<xmlElementAttribute>(System.Xml.Serialization.)?XmlElement(Attribute)?\()(""(?<elementName>[^""]+)"")?[^\)]*\)\](?<space>\s+)public (?<propertyType>\S+) (?<propertyName>\S+) "))
+						foreach (Match elementMatch in Regex.Matches(classContent,@"\[(?<xmlElementAttribute>(System.Xml.Serialization.)?XmlElement(Attribute)?\()(""(?<elementName>[^""]+)"")?[^\)]*\)\](?<space>\s+)public (?<propertyType>\S+) (?<propertyName>\S+)"))
 						{
 							string propertyName = elementMatch.Groups["propertyName"].Value;
 							string elementName = elementMatch.Groups["elementName"].Value;
