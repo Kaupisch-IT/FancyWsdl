@@ -152,10 +152,8 @@ namespace FancyWsdl
 				}
 
 				// add annotations/documentation from XML schema
-				if (args.Length>1)
+				foreach (string schemaUrl in args.Skip(1)) 
 				{
-					string schemaUrl = args[1];
-
 					XmlDocument xmlDocument = new XmlDocument();
 					using (XmlTextReader xmlTextReader = new XmlTextReader(schemaUrl))
 					{
