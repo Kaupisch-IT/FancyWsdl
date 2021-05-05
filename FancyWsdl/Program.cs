@@ -192,15 +192,16 @@ namespace FancyWsdl
 						}
 
 						// operation documentation
-						foreach (Match elementMatch in Regex.Matches(classContent,@"(?<space>\s+)public (?<returnType>\S+) (?<methodName>\S+)\(\[(?<xmlElementAttribute>(System.Xml.Serialization.)?XmlElement(Attribute)?\()(""(?<elementName>[^""]+)"")?[^\)]*\)\]"))
+						foreach (Match elementMatch in Regex.Matches(classContent,@"\[(?<xmlElementAttribute>(System.Xml.Serialization.)?SoapDocumentMethod(Attribute)?\()(""(?<soapName>[^""]+)"")?[^\)]*\)\](\s*\[[^\n]+\])*(?<space>\s+)public (?<returnType>\S+) (?<methodName>[^(\s]+)\("))
 						{
 							string methodName = elementMatch.Groups["methodName"].Value;
-							string elementName = elementMatch.Groups["elementName"].Value;
-							string typeName = xmlDocument.SelectSingleNode($"//*[contains(local-name(),'binding')]/*[contains(local-name(),'operation') and @name='{elementName}']/../@type")?.InnerText;
+							string soapName = elementMatch.Groups["soapName"].Value;
+							string typeName = xmlDocument.SelectSingleNode($"//*[contains(local-name(),'binding')]/*[contains(local-name(),'operation')]/*[@soapAction='{soapName}']/../../@type")?.InnerText;
+							string operationName = xmlDocument.SelectSingleNode($"//*[contains(local-name(),'binding')]/*[contains(local-name(),'operation')]/*[@soapAction='{soapName}']/../@name")?.InnerText;
 							if (typeName!=null)
 							{
 								typeName = Regex.Replace(typeName,@"^[^:]+:","");
-								string elementDocumentation = xmlDocument.SelectSingleNode($"//*[@name='{typeName}']//*[@name='{elementName}']//*[contains(local-name(),'documentation')]")?.InnerText;
+								string elementDocumentation = xmlDocument.SelectSingleNode($"//*[@name='{typeName}']//*[@name='{operationName}']//*[contains(local-name(),'documentation')]")?.InnerText;
 								if (elementDocumentation!=null)
 								{
 									elementDocumentation = toSummary(elementDocumentation,elementMatch.Groups["space"].Value);
