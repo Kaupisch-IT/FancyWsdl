@@ -194,12 +194,13 @@ namespace FancyWsdl
 						}
 
 						// operation documentation
-						foreach (Match elementMatch in Regex.Matches(classContent,@"\[(?<xmlElementAttribute>(System.Xml.Serialization.)?SoapDocumentMethod(Attribute)?\()(""(?<soapName>[^""]+)"")?[^\)]*\)\](\s*\[[^\n]+\])*(?<space>\s+)public (?<returnType>\S+) (?<methodName>[^(\s]+)\("))
+						foreach (Match elementMatch in Regex.Matches(classContent,@"\[(?<soapDocumentMethodAttribute>(System.Web.Services.Protocols.)?SoapDocumentMethod(Attribute)?\()(""(?<soapName>[^""]+)"")?[^\)]*\)\](\s*\[[^\n]+\])*(?<space>\s+)public (?<returnType>\S+) (?<methodName>[^(\s]+)\("))
 						{
 							string methodName = elementMatch.Groups["methodName"].Value;
 							string soapName = elementMatch.Groups["soapName"].Value;
 							string typeName = xmlDocument.SelectSingleNode($"//*[contains(local-name(),'binding')]/*[contains(local-name(),'operation')]/*[@soapAction='{soapName}']/../../@type")?.InnerText;
 							string operationName = xmlDocument.SelectSingleNode($"//*[contains(local-name(),'binding')]/*[contains(local-name(),'operation')]/*[@soapAction='{soapName}']/../@name")?.InnerText;
+							
 							if (typeName!=null)
 							{
 								typeName = Regex.Replace(typeName,@"^[^:]+:","");
