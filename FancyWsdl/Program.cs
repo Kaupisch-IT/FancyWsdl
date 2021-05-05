@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Web;
 using System.Xml;
 
 namespace FancyWsdl
@@ -169,7 +170,7 @@ namespace FancyWsdl
 
 						static string toSummary(string text,string indentSpace)
 						{
-							text = text.Trim();
+							text = HttpUtility.HtmlEncode(text.Trim());
 							if (text.Contains("\n"))
 								return $"/// <summary>{indentSpace}/// {Regex.Replace(text,"\r?\n",indentSpace+"/// ")}{indentSpace}/// </summary>";
 							else
