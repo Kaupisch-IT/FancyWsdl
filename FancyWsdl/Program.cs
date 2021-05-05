@@ -190,6 +190,24 @@ namespace FancyWsdl
 							}
 						}
 
+						// operation documentation
+						foreach (Match elementMatch in Regex.Matches(classContent,@"(?<space>\s+)public (?<returnType>\S+) (?<methodName>\S+)\(\[(?<xmlElementAttribute>(System.Xml.Serialization.)?XmlElement(Attribute)?\()(""(?<elementName>[^""]+)"")?[^\)]*\)\]"))
+						{
+							string methodName = elementMatch.Groups["methodName"].Value;
+							string elementName = elementMatch.Groups["elementName"].Value;
+							string typeName = xmlDocument.SelectSingleNode($"//*[contains(local-name(),'binding')]/*[contains(local-name(),'operation') and @name='{elementName}']/../@type")?.InnerText;
+							if (typeName!=null)
+							{
+								typeName = Regex.Replace(typeName,@"^[^:]+:","");
+								string elementDocumentation = xmlDocument.SelectSingleNode($"//*[@name='{typeName}']//*[@name='{elementName}']//*[contains(local-name(),'documentation')]")?.InnerText;
+								if (elementDocumentation!=null)
+								{
+									elementDocumentation = toSummary(elementDocumentation,elementMatch.Groups["space"].Value);
+									classContent = Regex.Replace(classContent,@$"(?<remarks>/// <remarks/>)(?<remainder>(\s*\[[^\n]+\])*\s*public (?<returnType>\S+) {methodName}\b)",m => elementDocumentation+m.Groups["remainder"].Value,RegexOptions.Singleline|RegexOptions.Multiline);
+								}
+							}
+						}
+
 						// enum documentation
 						foreach (Match enumMatch in Regex.Matches(classContent,@"\[(?<xmlElementAttribute>(System.Xml.Serialization.)?XmlEnum(Attribute)?\()(""(?<enumValueName>[^""]+)"")?[^\)]*\)\](?<space>\s+)(?<enumValue>\S+),"))
 						{
