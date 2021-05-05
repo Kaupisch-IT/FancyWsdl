@@ -157,7 +157,7 @@ namespace FancyWsdl
 					XmlDocument xmlDocument = new XmlDocument();
 					using (XmlTextReader xmlTextReader = new XmlTextReader(schemaUrl))
 					{
-						xmlTextReader.Namespaces = false;
+					 	xmlTextReader.Namespaces = false;
 						xmlDocument.Load(xmlTextReader);
 					}
 
@@ -180,7 +180,7 @@ namespace FancyWsdl
 						{
 							string propertyName = elementMatch.Groups["propertyName"].Value;
 							string elementName = elementMatch.Groups["elementName"].Value;
-							string elementDocumentation = xmlDocument.SelectSingleNode($"//schema/*[@name='{rootName}']/*/*[@name='{elementName}']/*[local-name()='xs:annotation']/*[local-name()='xs:documentation']")?.InnerText;
+							string elementDocumentation = xmlDocument.SelectSingleNode($"/*/*[@name='{rootName}']//*[@name='{elementName}']/*[contains(local-name(),'annotation')]/*[contains(local-name(),'documentation')]")?.InnerText;
 
 							if (elementDocumentation!=null)
 							{
@@ -194,7 +194,7 @@ namespace FancyWsdl
 						{
 							string enumValue = enumMatch.Groups["enumValueName"].Value;
 							string enumValueName = enumMatch.Groups["enumValue"].Value;
-							string enumDocumentation = xmlDocument.SelectSingleNode($"//schema/*[@name='{rootName}']/*/*[@value='{enumValueName}']/*[local-name()='xs:annotation']/*[local-name()='xs:documentation']")?.InnerText;
+							string enumDocumentation = xmlDocument.SelectSingleNode($"/*/*[@name='{rootName}']//*[@value='{enumValueName}']/*[contains(local-name(),'annotation')]/*[contains(local-name(),'documentation')]")?.InnerText;
 
 							if (enumDocumentation!=null)
 							{
@@ -206,7 +206,7 @@ namespace FancyWsdl
 						fileContent = fileContent.Replace(classMatch.Value,classContent);
 
 						// complex type documentation
-						string classDocumentation = xmlDocument.SelectSingleNode($"//schema/*[@name='{rootName}']/*[local-name()='xs:annotation']/*[local-name()='xs:documentation']")?.InnerText;
+						string classDocumentation = xmlDocument.SelectSingleNode($"/*/*[@name='{rootName}']/*[contains(local-name(),'annotation')]/*[contains(name(),'documentation')]")?.InnerText;
 						if (classDocumentation!=null)
 						{
 							classDocumentation = toSummary(classDocumentation,classMatch.Groups["space"].Value);
