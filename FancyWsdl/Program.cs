@@ -40,7 +40,7 @@ namespace FancyWsdl
 					}
 
 					// auto-implemented getters & setters
-					foreach (Match match in Regex.Matches(classContent,@"public (?<propertyType>\S+) (?<propertyName>\S+) (?<getterSetter>\{\s+get \{\s+return this\.(?<fieldName>[^;]+);\s+}\s+set \{\s+[^;]+;\s+\}\s+\})"))
+					foreach (Match match in Regex.Matches(classContent,@"public (?<propertyType>\S+) (?<propertyName>\S+)(?<getterSetter>\s+\{\s+get\s+\{\s+return this\.(?<fieldName>[^;]+);\s+}\s+set\s+\{\s+[^;]+;\s+\}\s+\})"))
 					{
 						string propertyType = match.Groups["propertyType"].Value;
 						string propertyName = match.Groups["propertyName"].Value;
@@ -53,7 +53,7 @@ namespace FancyWsdl
 					}
 
 					// property names with uppercase first letter
-					foreach (Match match in Regex.Matches(classContent,@"(?<pre>public \S+ )(?<propertyName>\S+)(?<post> \{)"))
+					foreach (Match match in Regex.Matches(classContent,@"(?<pre>public \S+ )(?<propertyName>\S+)(?<post>\S+\{)"))
 					{
 						string pre = match.Groups["pre"].Value;
 						string propertyName = match.Groups["propertyName"].Value;
@@ -135,7 +135,7 @@ namespace FancyWsdl
 				}
 
 				// enumerate all class definitions
-				foreach (Match classMatch in Regex.Matches(fileContent,@"(\[(?<xmlRootAttribute>(System.Xml.Serialization.)?XmlRoot(Attribute)?\()(""(?<rootName>[^""]+)"")?[^\)]*\)\])?(?<space>\s+)(?<classDefinition>public (partial class|enum) (?<className>\S+) )"))
+				foreach (Match classMatch in Regex.Matches(fileContent,@"(\[(?<xmlRootAttribute>(System.Xml.Serialization.)?XmlRoot(Attribute)?\()(""(?<rootName>[^""]+)"")?[^\)]*\)\])?(?<space>\s+)(?<classDefinition>public (partial class|enum) (?<className>\S+))"))
 				{
 					string xmlRootAttribute = classMatch.Groups["xmlRootAttribute"].Value;
 					string rootName = classMatch.Groups["rootName"].Value;
