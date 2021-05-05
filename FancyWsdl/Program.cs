@@ -134,7 +134,7 @@ namespace FancyWsdl
 					fileContent = fileContent.Replace(enumMatch.Value,enumContent);
 				}
 
-				// enumerate all class definitions
+				// enumerate all type definitions
 				foreach (Match classMatch in Regex.Matches(fileContent,@"(\[(?<xmlRootAttribute>(System.Xml.Serialization.)?XmlRoot(Attribute)?\()(""(?<rootName>[^""]+)"")?[^\)]*\)\])?(?<space>\s+)(?<classDefinition>public (partial class|enum) (?<className>\S+))"))
 				{
 					string xmlRootAttribute = classMatch.Groups["xmlRootAttribute"].Value;
@@ -143,13 +143,13 @@ namespace FancyWsdl
 					string classDefinition = classMatch.Groups["classDefinition"].Value;
 					string className = classMatch.Groups["className"].Value;
 
-					// class name in XmlRootAttribute
+					// type name in XmlRootAttribute
 					if (String.IsNullOrEmpty(xmlRootAttribute))
-						fileContent = fileContent.Replace(classMatch.Value,classMatch.Value.Replace(classDefinition,$"[System.Xml.Serialization.XmlRootAttribute(\"{className}\")]"+space+classDefinition));
+						fileContent = Regex.Replace(fileContent,$@"\b{Regex.Escape(classMatch.Value)}\b",classMatch.Value.Replace(classDefinition,$"[System.Xml.Serialization.XmlRootAttribute(\"{className}\")]"+space+classDefinition));
 					else if (String.IsNullOrEmpty(rootName))
-						fileContent = fileContent.Replace(classMatch.Value,classMatch.Value.Replace(xmlRootAttribute,xmlRootAttribute+"\""+className+"\", "));
+						fileContent = Regex.Replace(fileContent,$@"\b{Regex.Escape(classMatch.Value)}\b",classMatch.Value.Replace(xmlRootAttribute,xmlRootAttribute+"\""+className+"\", "));
 
-					// class name with uppercase first letter
+					// type name with uppercase first letter
 					fileContent = Regex.Replace(fileContent,$@"(?<!"")\b{Regex.Escape(className)}\b(?!""|(\(\[))",pascalCase(className));
 				}
 
